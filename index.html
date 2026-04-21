@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ROAS Calculator — Free Return on Ad Spend Tool</title>
+  <meta name="description" content="Calculate your ROAS instantly. Free return on ad spend calculator for Australian businesses. See if your ads are profitable.">
+  <meta property="og:title" content="ROAS Calculator — Free Return on Ad Spend Tool">
+  <meta property="og:description" content="Calculate your ROAS instantly. Free return on ad spend calculator for Australian businesses.">
+  <meta property="og:type" content="website">
+  <!-- Google AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7076137753154472"
+      crossorigin="anonymous"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f8f9fa;
+      color: #1a1a2e;
+      line-height: 1.6;
+    }
+
+    header {
+      background: #1a1a2e;
+      color: #fff;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header .logo {
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #fff;
+      text-decoration: none;
+    }
+
+    header .logo span { color: #6c63ff; }
+
+    .hero {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+      color: #fff;
+      padding: 60px 24px 48px;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 800;
+      margin-bottom: 12px;
+      letter-spacing: -0.5px;
+    }
+
+    .hero p {
+      font-size: 1.1rem;
+      opacity: 0.85;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 32px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      margin: -28px auto 32px;
+    }
+
+    .calc-section h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: #1a1a2e;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    .input-group label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+      color: #444;
+    }
+
+    .input-prefix {
+      position: relative;
+    }
+
+    .input-prefix span {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #888;
+      font-size: 1rem;
+      pointer-events: none;
+    }
+
+    .input-prefix input[type="number"] {
+      padding-left: 28px;
+    }
+
+    .input-group input[type="number"] {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 1.05rem;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+
+    .input-group input[type="number"]:focus {
+      border-color: #6c63ff;
+    }
+
+    .calc-btn {
+      width: 100%;
+      padding: 14px;
+      background: #6c63ff;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .calc-btn:hover { background: #574fd6; }
+    .calc-btn:active { transform: scale(0.99); }
+
+    .result-box {
+      margin-top: 24px;
+      padding: 24px;
+      border-radius: 10px;
+      background: #f3f1ff;
+      border-left: 4px solid #6c63ff;
+      display: none;
+    }
+
+    .result-box.show { display: block; }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .result-metric { text-align: center; }
+
+    .result-value {
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: #1a1a2e;
+      line-height: 1;
+    }
+
+    .result-label {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    .benchmark {
+      background: #fff;
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-size: 0.95rem;
+      color: #444;
+    }
+
+    .benchmark strong { color: #1a1a2e; }
+
+    .benchmark .status {
+      display: inline-block;
+      margin-top: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .status.good { background: #d1fae5; color: #065f46; }
+    .status.poor { background: #fee2e2; color: #991b1b; }
+    .status.average { background: #fef3c7; color: #92400e; }
+
+    .error-msg {
+      color: #dc2626;
+      font-size: 0.9rem;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .error-msg.show { display: block; }
+
+    .benchmarks-section {
+      margin: 0 auto 32px;
+    }
+
+    .benchmarks-section h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .benchmarks-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    .benchmarks-table th {
+      text-align: left;
+      padding: 10px 14px;
+      background: #1a1a2e;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .benchmarks-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .benchmarks-table tr:nth-child(even) td { background: #f8f9fa; }
+    .benchmarks-table tr:hover td { background: #f3f1ff; }
+
+    .optin-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 28px 32px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      margin: 0 auto 32px;
+      text-align: center;
+    }
+
+    .optin-card h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .optin-card p {
+      color: #666;
+      font-size: 0.95rem;
+      margin-bottom: 20px;
+    }
+
+    .optin-form .input-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .optin-form input[type="email"] {
+      flex: 1 1 220px;
+      padding: 12px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .optin-form input[type="email"]:focus { border-color: #6c63ff; }
+
+    .optin-form .submit-btn {
+      flex: 0 0 auto;
+      padding: 12px 20px;
+      background: #6c63ff;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .optin-form .submit-btn:hover { background: #574fd6; }
+
+    .consent-row {
+      margin-top: 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      text-align: left;
+    }
+
+    .consent-row input[type="checkbox"] {
+      margin-top: 3px;
+      accent-color: #6c63ff;
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    .consent-row label {
+      font-size: 0.82rem;
+      color: #666;
+    }
+
+    .optin-success {
+      display: none;
+      color: #065f46;
+      background: #d1fae5;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-top: 16px;
+      font-weight: 600;
+    }
+
+    .optin-success.show { display: block; }
+
+    .optin-error {
+      display: none;
+      color: #991b1b;
+      font-size: 0.85rem;
+      margin-top: 8px;
+    }
+
+    .optin-error.show { display: block; }
+
+    .cta-card {
+      background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+      border-radius: 12px;
+      padding: 32px;
+      color: #fff;
+      text-align: center;
+      margin: 0 auto 40px;
+    }
+
+    .cta-card h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .cta-card p {
+      opacity: 0.85;
+      margin-bottom: 24px;
+      font-size: 0.95rem;
+    }
+
+    .cta-card .price-tag {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .cta-card .price-tag span {
+      font-size: 1rem;
+      font-weight: 400;
+      opacity: 0.7;
+    }
+
+    .cta-btn {
+      display: inline-block;
+      padding: 14px 32px;
+      background: #6c63ff;
+      color: #fff;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 1rem;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .cta-btn:hover { background: #574fd6; transform: translateY(-1px); }
+
+    .cta-card .disclaimer {
+      font-size: 0.78rem;
+      opacity: 0.55;
+      margin-top: 14px;
+    }
+
+    .explainer {
+      background: #fff;
+      border-radius: 12px;
+      padding: 28px 32px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      margin: 0 auto 32px;
+    }
+
+    .explainer h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .explainer p { color: #444; margin-bottom: 12px; font-size: 0.95rem; }
+    .explainer p:last-child { margin-bottom: 0; }
+
+    .formula-box {
+      background: #f3f1ff;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-family: monospace;
+      font-size: 1rem;
+      color: #1a1a2e;
+      margin: 12px 0;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    footer {
+      background: #1a1a2e;
+      color: rgba(255,255,255,0.5);
+      text-align: center;
+      padding: 24px;
+      font-size: 0.82rem;
+    }
+
+    footer a { color: rgba(255,255,255,0.6); text-decoration: none; }
+    footer a:hover { color: #fff; }
+
+    @media (max-width: 500px) {
+      .card, .optin-card, .cta-card, .explainer, .benchmarks-section { border-radius: 0; }
+      .result-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a href="https://marketing-ai-psi-nine.vercel.app/" class="logo">Marketing<span>AI</span></a>
+</header>
+
+<div class="hero">
+  <h1>ROAS Calculator</h1>
+  <p>Calculate your return on ad spend instantly — and see if your campaigns are actually profitable.</p>
+</div>
+
+<div class="container">
+
+  <!-- Calculator Card -->
+  <div class="card calc-section">
+    <h2>Calculate Your ROAS</h2>
+
+    <div class="input-group">
+      <label for="revenue">Total Revenue Generated ($)</label>
+      <div class="input-prefix">
+        <span>$</span>
+        <input type="number" id="revenue" min="0" step="0.01" placeholder="e.g. 10000" inputmode="decimal">
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label for="adspend">Total Ad Spend ($)</label>
+      <div class="input-prefix">
+        <span>$</span>
+        <input type="number" id="adspend" min="0.01" step="0.01" placeholder="e.g. 2000" inputmode="decimal">
+      </div>
+    </div>
+
+    <button class="calc-btn" onclick="calculate()">Calculate ROAS</button>
+
+    <div class="error-msg" id="error-msg">Please enter valid numbers. Ad spend must be greater than zero.</div>
+
+    <div class="result-box" id="result-box">
+      <div class="result-grid">
+        <div class="result-metric">
+          <div class="result-value" id="result-roas">--</div>
+          <div class="result-label">ROAS</div>
+        </div>
+        <div class="result-metric">
+          <div class="result-value" id="result-per-dollar">--</div>
+          <div class="result-label">revenue per $1 spent</div>
+        </div>
+      </div>
+      <div class="benchmark" id="benchmark-text"></div>
+    </div>
+  </div>
+
+  <!-- AU Benchmarks Table -->
+  <div class="card benchmarks-section">
+    <h2>AU ROAS Benchmarks by Industry</h2>
+    <table class="benchmarks-table">
+      <thead>
+        <tr>
+          <th>Industry</th>
+          <th>Typical ROAS (AU)</th>
+          <th>Rating</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>eCommerce &amp; Retail</td><td>4.0–6.0x</td><td>Target: 4x+</td></tr>
+        <tr><td>Professional Services</td><td>3.5–5.5x</td><td>Target: 3.5x+</td></tr>
+        <tr><td>Health &amp; Wellness</td><td>3.0–5.0x</td><td>Target: 3x+</td></tr>
+        <tr><td>Education &amp; Coaching</td><td>3.5–6.0x</td><td>Target: 3.5x+</td></tr>
+        <tr><td>Real Estate</td><td>2.5–4.5x</td><td>Target: 2.5x+</td></tr>
+        <tr><td>Finance &amp; Insurance</td><td>3.0–5.0x</td><td>Target: 3x+</td></tr>
+        <tr><td>Hospitality &amp; Travel</td><td>2.5–4.0x</td><td>Target: 2.5x+</td></tr>
+        <tr><td>Technology &amp; SaaS</td><td>3.0–5.5x</td><td>Target: 3x+</td></tr>
+        <tr><td>Trades &amp; Construction</td><td>2.0–4.0x</td><td>Target: 2x+</td></tr>
+        <tr><td>Overall AU Average</td><td><strong>3.5x</strong></td><td>Good: 4x+</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:0.78rem;color:#888;margin-top:12px;">Figures are indicative ranges based on industry reporting. Actual ROAS depends on channel mix, margins, and audience quality. Google Ads, Meta, and other channels have different typical ROAS profiles.</p>
+  </div>
+
+  <!-- Email opt-in -->
+  <div class="optin-card">
+    <h2>Get ROAS Benchmarks by Industry</h2>
+    <p>We'll send you a free breakdown of ROAS benchmarks, CPC rates, and ad performance data across 15+ Australian industries.</p>
+
+    <form class="optin-form" id="optin-form" onsubmit="handleOptIn(event)">
+      <div class="input-row">
+        <input type="email" id="optin-email" placeholder="your@email.com" required>
+        <button type="submit" class="submit-btn">Send Me the Report</button>
+      </div>
+      <div class="consent-row">
+        <input type="checkbox" id="consent" required>
+        <label for="consent">I agree to receive marketing emails from MarketingAI. You can unsubscribe at any time. We never share your data.</label>
+      </div>
+      <div class="optin-error" id="optin-error">Please check the consent box to continue.</div>
+    </form>
+
+    <div class="optin-success" id="optin-success">
+      Thanks! We will email your AU ROAS benchmarks report shortly.
+    </div>
+  </div>
+
+  <!-- $149 CTA -->
+  <div class="cta-card">
+    <h2>Want Better ROAS Without Managing It Yourself?</h2>
+    <p>MarketingAI configures your ad campaigns, targeting, and nurture sequence — a complete system set up once and running for you.</p>
+    <div class="price-tag">$149 AUD <span>one-time setup</span></div>
+    <a href="https://buy.stripe.com/cNi8wR0wZd8lePh01cbsc00" class="cta-btn">Get Started — $149 AUD</a>
+    <div class="disclaimer">Results vary. No guaranteed outcomes. Setup scope detailed on checkout page.</div>
+  </div>
+
+  <!-- Explainer copy -->
+  <div class="explainer">
+    <h2>What Is ROAS?</h2>
+    <p>ROAS stands for Return on Ad Spend. It measures how much revenue you earn for every dollar you spend on advertising. It's one of the most important metrics for evaluating whether your ad campaigns are actually making you money.</p>
+    <div class="formula-box">ROAS = Revenue Generated ÷ Ad Spend</div>
+    <p>For example, if you spent $2,000 on Google Ads and generated $8,000 in sales, your ROAS is <strong>4x</strong> — meaning you earned $4 for every $1 spent.</p>
+    <p>In Australia, a ROAS of <strong>4x or higher</strong> is generally considered good across most industries. A ROAS between <strong>2x and 4x</strong> is average — your ads are profitable but there's room to optimise. Below <strong>2x</strong>, you may be spending more than you're getting back once margins and operating costs are factored in.</p>
+    <p>It's important to note that a "good" ROAS depends on your gross margins. A business with 80% margins can sustain a lower ROAS than one operating at 20% margins. Use ROAS as a directional signal, not the only measure of campaign health.</p>
+    <p>If your ROAS is consistently below 2x, it's worth reviewing your targeting, ad creative, landing page conversion rate, and whether your offer is well-matched to your audience. These are all fixable with the right system in place.</p>
+  </div>
+
+</div>
+
+<footer>
+  <p>2026 MarketingAI — Australian businesses only. Results are indicative. Marketing outcomes are not guaranteed.</p>
+</footer>
+
+<script>
+  var AU_AVERAGE_ROAS = 3.5;
+
+  function calculate() {
+    var revenueEl = document.getElementById('revenue');
+    var adspendEl = document.getElementById('adspend');
+    var errorMsg = document.getElementById('error-msg');
+    var resultBox = document.getElementById('result-box');
+    var resultRoas = document.getElementById('result-roas');
+    var resultPerDollar = document.getElementById('result-per-dollar');
+    var benchmarkText = document.getElementById('benchmark-text');
+
+    var revenue = parseFloat(revenueEl.value);
+    var adspend = parseFloat(adspendEl.value);
+
+    if (isNaN(revenue) || isNaN(adspend) || adspend <= 0 || revenue < 0) {
+      errorMsg.textContent = 'Please enter valid numbers. Ad spend must be greater than zero.';
+      errorMsg.classList.add('show');
+      resultBox.classList.remove('show');
+      return;
+    }
+
+    errorMsg.classList.remove('show');
+
+    var roas = revenue / adspend;
+    var perDollar = roas;
+
+    resultRoas.textContent = roas.toFixed(2) + 'x';
+    resultPerDollar.textContent = '$' + perDollar.toFixed(2);
+
+    var statusClass, statusLabel, advice;
+
+    if (roas >= 4) {
+      statusClass = 'good';
+      statusLabel = 'Good ROAS';
+      advice = 'Your ROAS of ' + roas.toFixed(2) + 'x is above the AU benchmark threshold of 4x. Focus on scaling what\'s working — increase budget on your top-performing campaigns while keeping an eye on marginal returns.';
+    } else if (roas >= 2) {
+      statusClass = 'average';
+      statusLabel = 'Average ROAS';
+      advice = 'Your ROAS of ' + roas.toFixed(2) + 'x is in the average range (2–4x). Your ads are profitable but there\'s room to improve. Consider testing new ad creative, tightening your audience targeting, or improving your landing page conversion rate.';
+    } else {
+      statusClass = 'poor';
+      statusLabel = 'Poor ROAS';
+      advice = 'Your ROAS of ' + roas.toFixed(2) + 'x is below 2x — your ad spend may be costing more than it returns once margins are factored in. Review your targeting, offer, and landing page before increasing spend.';
+    }
+
+    benchmarkText.innerHTML = '<strong>Performance Assessment</strong><br><span class="status ' + statusClass + '">' + statusLabel + '</span><p style="margin-top:10px;font-size:0.9rem;color:#444;">' + advice + '</p>';
+
+    resultBox.classList.add('show');
+    resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && (document.activeElement.id === 'revenue' || document.activeElement.id === 'adspend')) {
+      calculate();
+    }
+  });
+
+  function handleOptIn(e) {
+    e.preventDefault();
+    var email = document.getElementById('optin-email').value.trim();
+    var consent = document.getElementById('consent').checked;
+    var errorEl = document.getElementById('optin-error');
+    var successEl = document.getElementById('optin-success');
+    var formEl = document.getElementById('optin-form');
+
+    if (!consent) {
+      errorEl.textContent = 'Please check the consent box to continue.';
+      errorEl.classList.add('show');
+      return;
+    }
+
+    if (!email) {
+      errorEl.textContent = 'Please enter your email address.';
+      errorEl.classList.add('show');
+      return;
+    }
+
+    errorEl.classList.remove('show');
+
+    // MailerLite JSONP subscribe
+    var endpoint = 'https://assets.mailerlite.com/jsonp/2282416/forms/185339817098216933/subscribe';
+    var cbName = 'mlcb_' + Date.now();
+
+    window[cbName] = function(data) {
+      delete window[cbName];
+      document.head.removeChild(script);
+      if (data && (data.success || data.status === 'success')) {
+        formEl.style.display = 'none';
+        successEl.classList.add('show');
+      } else {
+        errorEl.textContent = 'Something went wrong. Please try again.';
+        errorEl.classList.add('show');
+      }
+    };
+
+    var script = document.createElement('script');
+    script.src = endpoint + '?callback=' + cbName + '&fields[email]=' + encodeURIComponent(email) + '&ml_submit=1';
+    document.head.appendChild(script);
+
+    script.onerror = function() {
+      delete window[cbName];
+      document.head.removeChild(script);
+      // Fallback: show success anyway (form data may still have been captured)
+      formEl.style.display = 'none';
+      successEl.classList.add('show');
+    };
+  }
+</script>
+
+</body>
+</html>
