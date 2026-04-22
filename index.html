@@ -330,6 +330,78 @@
 
     .optin-error.show { display: block; }
 
+    .optin-error-msg {
+      display: none;
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      background: #fee2e2;
+      color: #991b1b;
+      border-left: 4px solid #dc2626;
+    }
+
+    .optin-error-msg.show { display: block; }
+
+    .optin-error-msg strong {
+      display: block;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+
+    .optin-success-msg {
+      display: none;
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      background: #dcfce7;
+      color: #166534;
+      border-left: 4px solid #16a34a;
+    }
+
+    .optin-success-msg.show { display: block; }
+
+    .optin-success-msg strong {
+      display: block;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+
+    .message-dismiss {
+      background: none;
+      border: none;
+      color: inherit;
+      cursor: pointer;
+      text-decoration: underline;
+      font-size: 12px;
+      margin-top: 8px;
+      padding: 0;
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-loading {
+      display: inline-block;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+
+    .btn-loading.hidden { display: none; }
+
+    .spinner {
+      display: inline-block;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
     .cta-card {
       background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
       border-radius: 12px;
@@ -498,10 +570,26 @@
     <h2>Get ROAS Benchmarks by Industry</h2>
     <p>We'll send you a free breakdown of ROAS benchmarks across 15+ Australian industries, plus tips on what's dragging your numbers down.</p>
 
+    <div class="optin-error-msg" id="optin-error">
+      <strong>Oops!</strong> Form submission failed. Please try again in a moment.
+      <button class="message-dismiss" onclick="document.getElementById('optin-error').classList.remove('show')">Dismiss</button>
+    </div>
+    <div class="optin-success-msg" id="optin-success">
+      <strong>Success!</strong> Check your email for the next step.
+    </div>
+
     <form class="optin-form" id="optin-form" onsubmit="handleOptIn(event)">
       <div class="input-row">
         <input type="email" id="optin-email" placeholder="your@email.com" required>
-        <button type="submit" class="submit-btn">Send Me the Benchmarks</button>
+        <button type="submit" class="submit-btn" id="optin-submit">
+          <span class="btn-text">Send Me the Benchmarks</span>
+          <span class="btn-loading hidden">
+            <svg class="spinner" width="16" height="16" viewBox="0 0 16 16">
+              <circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2" opacity="0.3"/>
+              <path cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="9.4" stroke-linecap="round" opacity="0.9"/>
+            </svg>
+          </span>
+        </button>
       </div>
       <div class="consent-row">
         <input type="checkbox" id="consent" required>
@@ -552,6 +640,12 @@
 </footer>
 
 <script>
+  var MAILERLITE_CONFIG = {
+    endpoint: 'https://assets.mailerlite.com/jsonp/2282416/forms/185339817098216933/subscribe',
+    timeout: 10000,
+    retries: 3
+  };
+
   function calculate() {
     var revenueEl = document.getElementById('revenue');
     var adspendEl = document.getElementById('adspend');
@@ -608,34 +702,111 @@
 
   function handleOptIn(e) {
     e.preventDefault();
+
+    var form = document.getElementById('optin-form');
     var email = document.getElementById('optin-email').value;
     var consent = document.getElementById('consent').checked;
+    var submitBtn = document.getElementById('optin-submit');
+    var btnText = submitBtn.querySelector('.btn-text');
+    var btnLoading = submitBtn.querySelector('.btn-loading');
     var errorEl = document.getElementById('optin-error');
     var successEl = document.getElementById('optin-success');
 
     if (!consent) {
+      errorEl.textContent = '⚠️ Please agree to receive marketing emails.';
       errorEl.classList.add('show');
       return;
     }
 
     errorEl.classList.remove('show');
+    successEl.classList.remove('show');
 
+    submitBtn.disabled = true;
+    btnText.classList.add('hidden');
+    btnLoading.classList.remove('hidden');
+
+    localStorage.setItem('marketingai_optin_' + Date.now(), JSON.stringify({
+      email: email,
+      timestamp: new Date().toISOString(),
+      tool: 'roas-calculator'
+    }));
+
+    submitToMailerLite(email, submitBtn, btnText, btnLoading, errorEl, successEl, 0);
+  }
+
+  function submitToMailerLite(email, submitBtn, btnText, btnLoading, errorEl, successEl, retryCount) {
     var formData = new FormData();
     formData.append('fields[email]', email);
     formData.append('ml-submit', '1');
     formData.append('anticsrf', 'true');
 
-    fetch('https://assets.mailerlite.com/jsonp/2282416/forms/185339817098216933/subscribe', {
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function() { controller.abort(); }, MAILERLITE_CONFIG.timeout);
+
+    fetch(MAILERLITE_CONFIG.endpoint, {
       method: 'POST',
-      body: formData
-    }).then(function() {
-      document.getElementById('optin-form').style.display = 'none';
-      successEl.classList.add('show');
-    }).catch(function() {
-      document.getElementById('optin-form').style.display = 'none';
-      successEl.classList.add('show');
+      body: formData,
+      signal: controller.signal
+    })
+      .then(function(response) {
+        clearTimeout(timeoutId);
+        document.getElementById('optin-form').style.display = 'none';
+        successEl.classList.add('show');
+      })
+      .catch(function(error) {
+        clearTimeout(timeoutId);
+
+        if (retryCount < MAILERLITE_CONFIG.retries - 1) {
+          var backoffMs = Math.pow(2, retryCount) * 1000;
+          setTimeout(function() {
+            submitToMailerLite(email, submitBtn, btnText, btnLoading, errorEl, successEl, retryCount + 1);
+          }, backoffMs);
+          return;
+        }
+
+        submitBtn.disabled = false;
+        btnText.classList.remove('hidden');
+        btnLoading.classList.add('hidden');
+
+        var errorMessage = 'Form submission failed. Please try again in a moment.';
+        if (error.name === 'AbortError') {
+          errorMessage = 'Request timed out. Please check your internet connection and try again.';
+        } else if (!navigator.onLine) {
+          errorMessage = 'You appear to be offline. Please check your connection and try again.';
+        }
+
+        errorEl.textContent = '⚠️ ' + errorMessage;
+        errorEl.classList.add('show');
+      });
+  }
+
+  function syncOfflineOptins() {
+    if (!navigator.onLine) return;
+
+    var keys = Object.keys(localStorage).filter(function(k) { return k.startsWith('marketingai_optin_'); });
+
+    keys.forEach(function(key) {
+      var data = JSON.parse(localStorage.getItem(key));
+      var ageMinutes = (Date.now() - new Date(data.timestamp).getTime()) / 60000;
+
+      if (ageMinutes < 1440) {
+        var formData = new FormData();
+        formData.append('fields[email]', data.email);
+        formData.append('ml-submit', '1');
+        formData.append('anticsrf', 'true');
+
+        fetch(MAILERLITE_CONFIG.endpoint, {
+          method: 'POST',
+          body: formData
+        })
+          .then(function() { localStorage.removeItem(key); })
+          .catch(function() {});
+      }
     });
   }
+
+  window.addEventListener('online', syncOfflineOptins);
+  window.addEventListener('load', syncOfflineOptins);
 </script>
 
 
